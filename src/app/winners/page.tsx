@@ -1,6 +1,6 @@
-import Header from "./lib/Header";
+import Header from "../lib/Header";
 
-export default function Home() {
+export default function Page() {
   return (
     <>
       <Header></Header>

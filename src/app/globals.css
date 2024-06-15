@@ -1,3 +1,50 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Jura:wght@500;700&display=swap");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css");
+
+html {
+  font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+ul,
+h1,
+h2,
+h3,
+ul,
+ol {
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  list-style-type: none;
+}
+
+.btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid white;
+  color: white;
+  border-radius: 5px;
+  background-color: #1d35575b;
+  padding: 0.2rem 2rem;
+  min-width: 150px;
+}
+
+.btn:disabled,
+.btn_disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.input {
+  padding: 0.2rem 2rem;
+}
