@@ -7,11 +7,9 @@ export default function Footer() {
       <Link href="https://rs.school/js/" target="_blank" title="Course's author">
         <Image src="/images/rs-school-js.svg" width={60} height={25} alt="Course's author's logo" />
       </Link>
-
       <Link href="https://github.com/SavitskayaKseniya22" target="_blank" title="Developer's github">
         made by Kseniia Savitskaia
       </Link>
-
       <span>© 2024</span>
     </footer>
   );

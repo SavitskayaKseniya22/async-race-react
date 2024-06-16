@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${jura.className} flex h-screen w-screen flex-col justify-between`}>
+      <body className={`${jura.className} flex h-svh w-svw flex-col justify-between`}>
         {children}
         <Footer></Footer>
       </body>
