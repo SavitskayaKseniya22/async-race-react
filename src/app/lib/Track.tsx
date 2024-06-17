@@ -3,8 +3,10 @@
 import { CarType } from "@/type";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { TrophyIcon } from "@heroicons/react/24/outline";
+import { KeyedMutator } from "swr";
 
-export default function Track({ car }: { car: CarType }) {
+export default function Track({ car, mutate }: { car: CarType; mutate: KeyedMutator<any> }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const colorInput = useRef<HTMLInputElement | null>(null);
@@ -13,7 +15,11 @@ export default function Track({ car }: { car: CarType }) {
   return (
     <li className="flex flex-col border-b-4 border-dashed border-indigo-600 bg-white p-2">
       <div className="flex gap-24">
-        <h3 className="text-2xl font-bold">{car.name}</h3>
+        <h3 className="block w-1/4 text-xl font-bold">{car.name}</h3>
+        <div className="flex items-center gap-1">
+          <TrophyIcon className="w-6 text-orange-300"></TrophyIcon>
+          <span className="font-bold">{car.wins}</span>
+        </div>
         <ul className="flex gap-2">
           <li>
             <button type="button" className="btn">
@@ -32,6 +38,7 @@ export default function Track({ car }: { car: CarType }) {
               onClick={async () => {
                 try {
                   await fetch("/api/car", { method: "DELETE", body: JSON.stringify({ id: car.id }) });
+                  mutate();
                 } catch (error) {
                   console.log(error);
                 }
@@ -63,6 +70,7 @@ export default function Track({ car }: { car: CarType }) {
                   try {
                     await fetch("/api/car", { method: "PUT", body: JSON.stringify({ id: car.id, carName, carColor }) });
                     form.reset();
+                    mutate();
                     setIsOpen(false);
                   } catch (error) {
                     console.log(error);

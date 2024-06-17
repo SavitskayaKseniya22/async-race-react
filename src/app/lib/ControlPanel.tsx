@@ -4,8 +4,9 @@ import { generateId, getRandomColor, getRandomName } from "@/utils";
 import { usePathname } from "next/navigation";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 import { useRef } from "react";
+import { KeyedMutator } from "swr";
 
-export default function ControlPanel() {
+export default function ControlPanel({ mutate }: { mutate: KeyedMutator<any> }) {
   const pathname = usePathname();
 
   const colorInput = useRef<HTMLInputElement | null>(null);
@@ -15,7 +16,7 @@ export default function ControlPanel() {
     return <></>;
   } else {
     return (
-      <div className="absolute right-4 top-4 flex w-1/3 flex-col gap-2">
+      <div className="absolute right-4 top-4 flex flex-col gap-2">
         <form
           className="flex gap-2"
           onSubmit={async (e: React.FormEvent<HTMLFormElement>) => {
@@ -28,6 +29,7 @@ export default function ControlPanel() {
             try {
               await fetch("/api/car", { method: "POST", body: JSON.stringify({ carName, carColor }) });
               form.reset();
+              mutate();
             } catch (error) {
               console.log(error);
             }
@@ -35,7 +37,7 @@ export default function ControlPanel() {
         >
           <input
             type="text"
-            className="input grow"
+            className="input"
             placeholder="Enter car name"
             name="carName"
             required
@@ -112,6 +114,7 @@ export default function ControlPanel() {
               onClick={async () => {
                 try {
                   await fetch("/api/cars", { method: "DELETE" });
+                  mutate();
                 } catch (error) {
                   console.log(error);
                 }
@@ -138,9 +141,11 @@ export default function ControlPanel() {
                     };
                   });
 
-                  console.log(cars);
                   await fetch("/api/cars", { method: "POST", body: JSON.stringify({ cars }) });
-                } catch (error) {}
+                  mutate();
+                } catch (error) {
+                  console.log(error);
+                }
               }}
             >
               Generate cars

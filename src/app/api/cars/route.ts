@@ -5,7 +5,6 @@ import { getRandomColor, generateId } from "@/utils";
 async function getCars() {
   try {
     await client.connect();
-
     const db = client.db("Race-app");
     const cars = await db.collection("garage").find().toArray();
     return cars;
@@ -14,9 +13,12 @@ async function getCars() {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const query = searchParams.get("page");
+  const limit = 7;
   const cars = await getCars();
-  return Response.json(cars);
+  return Response.json(query ? cars.splice(limit * (+query - 1), limit) : cars);
 }
 
 async function deleteCars() {
