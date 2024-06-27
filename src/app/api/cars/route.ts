@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import client from "../db";
-import { getRandomColor, generateId } from "@/utils";
 
 async function getCars() {
   try {

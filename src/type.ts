@@ -5,3 +5,14 @@ export interface CarType {
   name: string;
   color: string;
 }
+
+export enum WinnersSortType {
+  NAME = "name",
+  WINS = "wins",
+  TIME = "time",
+}
+
+export enum WinnersOrderType {
+  DESC = "desc",
+  ASC = "ask",
+}
