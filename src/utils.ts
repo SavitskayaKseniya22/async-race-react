@@ -33,3 +33,7 @@ export function generateId() {
   const randomness = Math.random().toString(36).substr(2);
   return dateString + randomness;
 }
+
+export function getTime(v: number, d: number) {
+  return d / v;
+}

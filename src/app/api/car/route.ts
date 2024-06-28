@@ -1,6 +1,6 @@
 import { generateId } from "@/utils";
 import client from "../db";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 async function postCar(request: Request) {
   try {
@@ -68,8 +68,8 @@ const state: { velocity: { [x: string]: number }; blocked: { [x: string]: boolea
 async function raceCar(req: Request) {
   try {
     const body = await req.json();
-
     const { id, status } = body;
+    const distance = 500000;
 
     if (!id || !status || !/^(started)|(stopped)|(drive)$/.test(status)) {
       return {
@@ -79,17 +79,18 @@ async function raceCar(req: Request) {
       };
     }
 
-    const db = client.db("Race-app");
-    const result = await db.collection("garage").findOne({ id });
-
-    if (!result) {
-      return {
-        message: "Car with such id was not found in the garage.",
-        code: 404,
-      };
-    }
-
-    const distance = 500000;
+    client
+      .db("Race-app")
+      .collection("garage")
+      .findOne({ id })
+      .then((result) => {
+        if (!result) {
+          return {
+            message: "Car with such id was not found in the garage.",
+            code: 404,
+          };
+        }
+      });
 
     if (status === "drive") {
       const velocity = state.velocity[id];
@@ -114,27 +115,22 @@ async function raceCar(req: Request) {
       const x = Math.round(distance / velocity);
 
       if (new Date().getMilliseconds() % 3 === 0) {
-        setTimeout(
-          () => {
-            delete state.velocity[id];
-            delete state.blocked[id];
-            return {
-              message: "Car has been stopped suddenly. It's engine was broken down.",
-              code: 500,
-            };
-          },
-          (Math.random() * x) ^ 0,
-        );
+        await new Promise((resolve) => setTimeout(resolve, (Math.random() * x) ^ 0));
+        delete state.velocity[id];
+        delete state.blocked[id];
+        return {
+          message: "Car has been stopped suddenly. It's engine was broken down.",
+          code: 500,
+        };
       } else {
-        setTimeout(() => {
-          delete state.velocity[id];
-          delete state.blocked[id];
+        await new Promise((resolve) => setTimeout(resolve, x));
+        delete state.velocity[id];
+        delete state.blocked[id];
 
-          return {
-            message: JSON.stringify({ success: true }),
-            code: 200,
-          };
-        }, x);
+        return {
+          message: { success: true },
+          code: 200,
+        };
       }
     } else {
       const x = (Math.random() * 2000) ^ 0;
@@ -150,16 +146,21 @@ async function raceCar(req: Request) {
 
       await new Promise((resolve) => setTimeout(resolve, x));
       return {
-        message: JSON.stringify({ velocity, distance }),
+        message: { velocity, distance },
         code: 200,
       };
     }
   } catch (error) {
     await client.close();
+    return { code: 401, message: "Unexpected error" };
   }
 }
 
 export async function PATCH(request: NextRequest) {
   const res = await raceCar(request);
-  return Response.json(res);
+
+  return NextResponse.json(res.message, {
+    status: res.code,
+    statusText: res.code !== 200 ? (res.message as string) : "",
+  });
 }
