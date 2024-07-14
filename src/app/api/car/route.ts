@@ -45,11 +45,17 @@ async function updateCar(request: Request) {
     await client.connect();
     const body = await request.json();
     const db = client.db("Race-app");
-    const result = await db
-      .collection("garage")
-      .findOneAndUpdate({ id: body.id }, { $set: { name: body.carName, color: body.carColor } });
-
-    return result;
+    if (body.updateType === "view") {
+      const result = await db
+        .collection("garage")
+        .findOneAndUpdate({ id: body.id }, { $set: { name: body.carName, color: body.carColor } });
+      return result;
+    } else if (body.updateType === "wins") {
+      const result = await db
+        .collection("garage")
+        .findOneAndUpdate({ id: body.id }, { $set: { wins: body.wins, time: body.time } });
+      return result;
+    }
   } finally {
     await client.close();
   }

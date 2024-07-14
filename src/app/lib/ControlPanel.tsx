@@ -1,158 +1,80 @@
 "use client";
 
 import { generateId, getRandomColor, getRandomName } from "@/utils";
-import { usePathname } from "next/navigation";
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
-import { useRef } from "react";
-import { KeyedMutator } from "swr";
+import { mutate } from "swr";
+import CarViewForm from "./CarViewForm";
 
-export default function ControlPanel({ mutate }: { mutate: KeyedMutator<any> }) {
-  const pathname = usePathname();
+export default function ControlPanel({
+  onRaceStart,
+  onRaceReset,
+  raceStatus,
+}: {
+  onRaceStart: () => void;
+  onRaceReset: () => void;
+  raceStatus: "race" | "solo" | "finish" | "hold";
+}) {
+  return (
+    <div className="absolute right-4 top-4 flex flex-col gap-2">
+      <CarViewForm type="Create"></CarViewForm>
 
-  const colorInput = useRef<HTMLInputElement | null>(null);
-  const nameInput = useRef<HTMLInputElement | null>(null);
-
-  if (pathname === "winners") {
-    return <></>;
-  } else {
-    return (
-      <div className="absolute right-4 top-4 flex flex-col gap-2">
-        <form
-          className="flex gap-2"
-          onSubmit={async (e: React.FormEvent<HTMLFormElement>) => {
-            e.preventDefault();
-            const form = e.currentTarget;
-            const formData = new FormData(form);
-            const carName = formData.get("carName");
-            const carColor = formData.get("carColor");
-
-            try {
-              await fetch("/api/car", { method: "POST", body: JSON.stringify({ carName, carColor }) });
-              form.reset();
-              mutate();
-            } catch (error) {
-              console.log(error);
-            }
-          }}
-        >
-          <input
-            type="text"
-            className="input"
-            placeholder="Enter car name"
-            name="carName"
-            required
-            ref={nameInput}
-            onFocus={async (e) => {
-              if (e.target.value === "") {
-                try {
-                  const response = await fetch("./api/carNames");
-                  const carNames = await response.json();
-                  const randomName = getRandomName(carNames);
-                  e.target.value = randomName;
-                } catch (error) {
-                  console.log(error);
-                }
-              }
-            }}
-          />
-          <input
-            type="color"
-            name="carColor"
-            ref={colorInput}
-            onFocus={(e) => {
-              if (e.target.value === "#000000") {
-                const randomColor = getRandomColor();
-                e.target.value = randomColor;
-              }
-            }}
-          />
+      <ul className="flex gap-2">
+        <li>
+          <button type="button" className="btn" onClick={onRaceStart} disabled={raceStatus !== "hold"}>
+            Race
+          </button>
+        </li>
+        <li>
+          <button type="button" className="btn" onClick={onRaceReset} disabled={raceStatus !== "finish"}>
+            Reset
+          </button>
+        </li>
+        <li>
           <button
-            className="btn"
             type="button"
+            className="btn"
             onClick={async () => {
-              const carName = nameInput.current;
-              const carColor = colorInput.current;
-
-              if (carName) {
-                try {
-                  const response = await fetch("./api/carNames");
-                  const carNames = await response.json();
-                  const randomName = getRandomName(carNames);
-                  carName.value = randomName;
-                } catch (error) {
-                  console.log(error);
-                }
-              }
-              if (carColor) {
-                const randomColor = getRandomColor();
-                carColor.value = randomColor;
+              try {
+                await fetch("/api/cars", { method: "DELETE" });
+                mutate(`/api/cars?page=1`);
+              } catch (error) {
+                console.log(error);
               }
             }}
+            disabled={raceStatus !== "hold"}
           >
-            <ArrowPathIcon className="size-6 text-white" />
+            Remove cars
           </button>
-          <button className="btn" type="submit">
-            Create
+        </li>
+        <li>
+          <button
+            type="button"
+            className="btn"
+            onClick={async () => {
+              try {
+                const response = await fetch("./api/carNames");
+                const carNames = await response.json();
+                const cars = new Array(10).fill(0).map(() => {
+                  return {
+                    name: getRandomName(carNames),
+                    color: getRandomColor(),
+                    id: generateId(),
+                    wins: 0,
+                    time: 0,
+                  };
+                });
+
+                await fetch("/api/cars", { method: "POST", body: JSON.stringify({ cars }) });
+                mutate(`/api/cars?page=1`);
+              } catch (error) {
+                console.log(error);
+              }
+            }}
+            disabled={raceStatus !== "hold"}
+          >
+            Generate cars
           </button>
-        </form>
-
-        <ul className="flex gap-2">
-          <li>
-            <button type="button" className="btn">
-              Race
-            </button>
-          </li>
-          <li>
-            <button type="button" className="btn">
-              Reset
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              className="btn"
-              onClick={async () => {
-                try {
-                  await fetch("/api/cars", { method: "DELETE" });
-                  mutate();
-                } catch (error) {
-                  console.log(error);
-                }
-              }}
-            >
-              Remove cars
-            </button>
-          </li>
-          <li>
-            <button
-              type="button"
-              className="btn"
-              onClick={async () => {
-                try {
-                  const response = await fetch("./api/carNames");
-                  const carNames = await response.json();
-                  const cars = new Array(10).fill(0).map(() => {
-                    return {
-                      name: getRandomName(carNames),
-                      color: getRandomColor(),
-                      id: generateId(),
-                      wins: 0,
-                      time: 0,
-                    };
-                  });
-
-                  await fetch("/api/cars", { method: "POST", body: JSON.stringify({ cars }) });
-                  mutate();
-                } catch (error) {
-                  console.log(error);
-                }
-              }}
-            >
-              Generate cars
-            </button>
-          </li>
-        </ul>
-      </div>
-    );
-  }
+        </li>
+      </ul>
+    </div>
+  );
 }

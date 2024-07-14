@@ -1,10 +1,10 @@
-export interface CarType {
-  id: number;
+export type CarType = {
+  id: string;
   wins: number;
   time: number;
   name: string;
   color: string;
-}
+};
 
 export enum WinnersSortType {
   NAME = "name",

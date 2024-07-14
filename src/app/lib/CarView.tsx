@@ -1,5 +1,3 @@
-import { AnimationScope } from "framer-motion";
-
 export default function CarView({ color, className = "" }: { color: string; className?: string }) {
   return (
     <div className={className}>

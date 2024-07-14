@@ -1,55 +1,48 @@
 "use client";
 
 import { useState } from "react";
-import Track from "./lib/Track";
 import { CarType } from "@/type";
 import useSWR from "swr";
-import ControlPanel from "./lib/ControlPanel";
+import Garage from "./lib/Garage";
 
 const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 export default function Page() {
   const [pageNumber, setPageNumber] = useState(1);
-  const { data, error, isLoading, mutate } = useSWR<CarType[] | undefined>(`/api/cars?page=${pageNumber}`, fetcher);
+  const result = useSWR<CarType[] | undefined>(`/api/cars?page=${pageNumber}`, fetcher);
+  const { data, error, isLoading, mutate } = result;
 
   return (
     <>
-      <ControlPanel mutate={mutate}></ControlPanel>
       <main className="flex grow flex-col justify-between p-2">
         {error && <div>ошибка загрузки</div>}
         {isLoading && <div>загрузка...</div>}
-        {data && data.length && (
-          <>
-            <ul className="flex flex-col gap-4">
-              {data.map((item: CarType) => {
-                return <Track key={item.id} car={item} mutate={mutate}></Track>;
-              })}
-            </ul>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className="btn"
-                onClick={() => {
-                  if (pageNumber > 1) {
-                    setPageNumber((i) => i - 1);
-                  }
-                }}
-              >
-                Prev
-              </button>
-              <button
-                type="button"
-                className="btn"
-                onClick={() => {
-                  setPageNumber((i) => i + 1);
-                }}
-              >
-                Next
-              </button>
-              {pageNumber}
-            </div>
-          </>
-        )}
+        {data && <Garage result={{ data, mutate }}></Garage>}
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            className="btn"
+            disabled={isLoading || error || pageNumber === 1}
+            onClick={() => {
+              if (pageNumber > 1) {
+                setPageNumber((i) => i - 1);
+              }
+            }}
+          >
+            Prev
+          </button>
+          {pageNumber}
+          <button
+            type="button"
+            className="btn"
+            disabled={isLoading || error}
+            onClick={() => {
+              setPageNumber((i) => i + 1);
+            }}
+          >
+            Next
+          </button>
+        </div>
       </main>
     </>
   );
